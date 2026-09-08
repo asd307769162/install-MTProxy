@@ -27,7 +27,7 @@ bash <(curl -s "https://raw.githubusercontent.com/nolaxe/install-MTProxy/main/te
 
 #### 📋 What the script DOES NOT do yet:
 * Validated global `ad_tag` support for sponsor channels
-* Automatic cryptographically secure 32-hex-character secrets for every user
+* Automatic or manually supplied, validated 32-hex-character secrets for every user
 * Local-only Telemt control API and safer configuration backups
 * Port 3088 and Telemt Middle-End mode defaults aimed at reliable, low-overhead client connections
 * Multi-user support ⏳
