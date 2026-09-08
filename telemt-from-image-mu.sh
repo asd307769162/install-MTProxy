@@ -95,6 +95,29 @@ generate_secret() {
     printf '%s\n' "${secret,,}"
 }
 
+# ENTER keeps the one-command experience automatic; advanced users can supply
+# an existing Telemt-compatible secret. The value is assigned to the variable
+# named by the first argument, so prompts never leak into command substitution.
+prompt_secret() {
+    local result_var="$1" label="$2" input generated
+    while true; do
+        ask "Secret for $label (32 hex characters, ENTER = automatic): "
+        read -r input
+        if [ -z "$input" ]; then
+            generated=$(generate_secret) || return 1
+            printf -v "$result_var" '%s' "$generated"
+            info "Generated an automatic 32-character secret for $label"
+            return 0
+        fi
+        if [[ "$input" =~ ^[0-9a-fA-F]{32}$ ]]; then
+            printf -v "$result_var" '%s' "${input,,}"
+            info "Using the manually supplied secret for $label"
+            return 0
+        fi
+        warn "Secret must contain exactly 32 hexadecimal characters"
+    done
+}
+
 validate_ad_tag() { [[ -z "$1" || "$1" =~ ^[0-9a-fA-F]{32}$ ]]; }
 validate_port() { [[ "$1" =~ ^[0-9]+$ ]] && (( 10#$1 >= 1 && 10#$1 <= 65535 )); }
 validate_domain() { [[ "$1" =~ ^([A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,63}$ ]]; }
@@ -518,8 +541,7 @@ fi
 # Генерация токенов
 if [ "$RENEW_SECRET" = true ]; then
     # Main token
-    MAIN_RAW_SECRET=$(generate_secret) || exit 1
-    info "Generated a secure 32-character MAIN secret"
+    prompt_secret MAIN_RAW_SECRET "MAIN user" || exit 1
     # Additional users
     read -p "[?] How many additional users to add? <$VALUE_DEF_MAX_USERS (default $VALUE_DEF_USER_COUNT): " value_user_input
     value_user_input=${value_user_input:-$VALUE_DEF_USER_COUNT}
@@ -539,8 +561,8 @@ if [ "$RENEW_SECRET" = true ]; then
             warn "Invalid name; using user$i"
             VALUE_USER_NAME="user$i"
         fi
-        NEW_SECRET=$(generate_secret) || exit 1
-        info "Added $VALUE_USER_NAME with an automatic 32-character secret"
+        prompt_secret NEW_SECRET "$VALUE_USER_NAME" || exit 1
+        info "Added user $VALUE_USER_NAME"
         ADDIT_CONFIG+=$'\n'"$VALUE_USER_NAME = \"$NEW_SECRET\""
     done
     [[ -n "$ADDIT_CONFIG" ]] && echo -e " Additional user list\n$ADDIT_CONFIG"
