@@ -26,7 +26,10 @@ bash <(curl -s "https://raw.githubusercontent.com/nolaxe/install-MTProxy/main/te
 * Includes an additional script to enable/disable the proxy
 
 #### 📋 What the script DOES NOT do yet:
-* `ad_tag` for sponsor channels ⏳
+* Validated global `ad_tag` support for sponsor channels
+* Automatic cryptographically secure 32-hex-character secrets for every user
+* Local-only Telemt control API and safer configuration backups
+* Port 443 and Telemt Middle-End mode defaults aimed at reliable, low-overhead client connections
 * Multi-user support ⏳
 
 #### 🛠 Installation Process:
@@ -104,4 +107,3 @@ https://ydns.io/hosts, https://www.noip.com, https://www.duckdns.org, etc.
 #### 🔗 Useful Links  
 * TeleMT image build by An0nX: [GitHub](https://github.com/An0nX/telemt-docker) / [Docker Hub](https://hub.docker.com/r/whn0thacked/telemt-docker).
 * TeleMT Developers: https://github.com/telemt/telemt
-
