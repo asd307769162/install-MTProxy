@@ -40,5 +40,7 @@ if [ -f "$INSTALL_DIR/$INSTALLER_NAME" ]; then
 fi
 
 install -m 0755 "$tmp_installer" "$INSTALL_DIR/$INSTALLER_NAME"
+rm -f "$tmp_installer"
+trap - EXIT
 cd "$INSTALL_DIR"
 exec "./$INSTALLER_NAME"
