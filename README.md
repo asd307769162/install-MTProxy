@@ -2,7 +2,7 @@
 
 ## 中文增强版
 
-增强版支持经过格式校验的 `ad_tag`、为每位用户自动生成 32 位十六进制密钥、本地管理 API、配置自动备份，以及 3088 默认端口和 Middle-End 默认配置。
+增强版支持经过格式校验的 `ad_tag`、为每位用户自动生成或手动输入 32 位十六进制密钥、本地管理 API、配置自动备份，以及 3088 默认端口和 Middle-End 默认配置。
 
 Ubuntu/Debian 使用 root 登录后执行：
 
@@ -13,6 +13,8 @@ bash <(curl -fsSL https://raw.githubusercontent.com/asd307769162/install-MTProxy
 脚本会安装到 `/opt/telemt`。重复运行同一条命令即可进入管理菜单或更新安装脚本。安装生成的 `telemt.toml`、`docker-compose.yml` 和 `proxy_link.txt` 均保存在该目录。
 
 > 注意：Telemt 用户密钥的格式是 16 个随机字节编码为 32 个十六进制字符。`ad_tag` 也必须是 @MTProxybot 返回的 32 位十六进制内容。
+
+安装过程中每个用户都会出现密钥提示：直接按回车会安全地随机生成；输入已有的 32 位十六进制密钥则会原样使用。
 
 <img width="37" height="37" alt="image" src="https://github.com/user-attachments/assets/a25adede-03fd-45a9-a07a-befe34a65021" />   |  TLDR: VPS + скрипт ниже = ускорение тг
 :--- | :---
