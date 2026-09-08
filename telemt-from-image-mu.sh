@@ -34,7 +34,7 @@ AD_TAG_DISABLED="#"
 # --- Default Telemt Conf ---
 VALUE_DEF_MAX_USERS=16
 VALUE_DEF_USER_COUNT=2
-VALUE_DEF_VALUE_PORT="443"
+VALUE_DEF_VALUE_PORT="3088"
 
 # get ip
 CUR_IP4=$(curl -4fsS --max-time 5 https://ifconfig.me 2>/dev/null || true)
