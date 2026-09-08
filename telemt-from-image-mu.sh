@@ -288,12 +288,20 @@ echo -e "${GREEN}File $FILE_CONFIG_TELEMT has been updated.${NC}"
 }
 
 write_file_config_compose() { # docker-compose.yml
+local container_user_line=""
+if (( VALUE_DEF_VALUE_PORT < 1024 )); then
+    # The upstream image declares a non-root user which cannot bind privileged
+    # ports on kernels where ip_unprivileged_port_start is 1024. Keep all
+    # capabilities dropped except NET_BIND_SERVICE and retain a read-only FS.
+    container_user_line='    user: "0:0"'
+fi
 cat > "$FILE_CONFIG_COMPOSE" <<EOF
 services:
   telemt:
     image: $IMAGE_NAME
     container_name: telemt
     restart: unless-stopped
+$container_user_line
     volumes:
       - ./$FILE_CONFIG_TELEMT:/etc/telemt.toml:ro
     network_mode: "host"
@@ -553,7 +561,7 @@ if [ "$RENEW_SETTINGS" = true ]; then
                 fi
                 # Check if port is privileged (<1024) and script is NOT running as root
                 if [[ "$VALUE_DEF_VALUE_PORT" -lt 1024 ]]; then
-                    warn "Port $VALUE_DEF_VALUE_PORT is privileged (needs root). Might not be able to verify if occupied."
+                    warn "Port $VALUE_DEF_VALUE_PORT is privileged; the container will run as root with only NET_BIND_SERVICE retained."
                     # echo -e "${YELLOW}  Please check manually or use port > 1024${NC}"
                     # continue
                 fi
