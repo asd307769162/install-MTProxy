@@ -313,7 +313,6 @@ services:
       resources:
         limits:
           memory: 128M
-    pids_limit: 256
     ulimits:
        nofile:
          soft: 65536
