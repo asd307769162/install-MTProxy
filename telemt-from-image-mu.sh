@@ -311,14 +311,14 @@ echo -e "${GREEN}File $FILE_CONFIG_TELEMT has been updated.${NC}"
 }
 
 write_file_config_compose() { # docker-compose.yml
-local container_user_line=""
+local output_file="${1:-$FILE_CONFIG_COMPOSE}" container_user_line=""
 if (( VALUE_DEF_VALUE_PORT < 1024 )); then
     # The upstream image declares a non-root user which cannot bind privileged
     # ports on kernels where ip_unprivileged_port_start is 1024. Keep all
     # capabilities dropped except NET_BIND_SERVICE and retain a read-only FS.
     container_user_line='    user: "0:0"'
 fi
-cat > "$FILE_CONFIG_COMPOSE" <<EOF
+cat > "$output_file" <<EOF
 services:
   telemt:
     image: $IMAGE_NAME
@@ -339,11 +339,11 @@ $container_user_line
     tmpfs:
       - /run/telemt:rw,nosuid,nodev,noexec,mode=1777,size=1m
       - /tmp:rw,nosuid,nodev,noexec,size=16m
-      - /etc/telemt:rw,nosuid,nodev,noexec,size=1m
+      - /etc/telemt:rw,nosuid,nodev,noexec,size=1m,uid=65532,gid=65532,mode=0750
     deploy:
       resources:
         limits:
-          memory: 128M
+          memory: 512M
     ulimits:
        nofile:
          soft: 65536
@@ -351,10 +351,31 @@ $container_user_line
     logging:
        driver: json-file
        options:
-         max-size: "10m"
+         max-size: "20m"
          max-file: "3"
 EOF
-echo -e "${GREEN}File $FILE_CONFIG_COMPOSE has been updated.${NC}"
+[ "$output_file" = "$FILE_CONFIG_COMPOSE" ] && echo -e "${GREEN}File $FILE_CONFIG_COMPOSE has been updated.${NC}"
+}
+
+# Older releases generated Compose files without Docker log rotation. Reusing
+# those files can let Telemt's INFO output fill the root filesystem. Rebuild the
+# script-managed Compose file from the current settings while leaving
+# telemt.toml (including secrets and ad_tag) untouched. Keep a timestamped copy
+# whenever migration changes the file.
+ensure_compose_runtime_defaults() {
+    local candidate stamp backup_file
+    [ -f "$FILE_CONFIG_COMPOSE" ] || { write_file_config_compose; return; }
+    candidate=$(mktemp ".${FILE_CONFIG_COMPOSE}.XXXXXX") || return 1
+    write_file_config_compose "$candidate"
+    if cmp -s "$FILE_CONFIG_COMPOSE" "$candidate"; then
+        rm -f "$candidate"
+        return
+    fi
+    stamp=$(date +%Y%m%d-%H%M%S)
+    backup_file="${FILE_CONFIG_COMPOSE}.bak-${stamp}"
+    cp -a "$FILE_CONFIG_COMPOSE" "$backup_file" || { rm -f "$candidate"; return 1; }
+    mv -f "$candidate" "$FILE_CONFIG_COMPOSE"
+    info "Compose runtime safeguards updated; previous file saved as $backup_file"
 }
 
 show_stats() {
@@ -638,8 +659,8 @@ if [[ "$RENEW_SECRET" == "true" || "$RENEW_SETTINGS" == "true" ]]; then
     backup_configs
     write_file_config_telemt
     write_file_config_compose
-elif [ ! -f "$FILE_CONFIG_COMPOSE" ]; then
-    write_file_config_compose
+else
+    ensure_compose_runtime_defaults || { err "Failed to update Compose runtime safeguards"; exit 1; }
 fi
 
 info "Config ready: $FILE_CONFIG_COMPOSE, $FILE_CONFIG_TELEMT"

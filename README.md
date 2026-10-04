@@ -12,6 +12,8 @@ bash <(curl -fsSL https://raw.githubusercontent.com/asd307769162/install-MTProxy
 
 脚本会安装到 `/opt/telemt`。重复运行同一条命令即可进入管理菜单或更新安装脚本。安装生成的 `telemt.toml`、`docker-compose.yml` 和 `proxy_link.txt` 均保存在该目录。
 
+为防止 Telemt 的持续输出占满系统盘，生成的 Compose 配置默认启用 Docker 日志轮转：单个日志文件最大 20MB，最多保留 3 个。重复运行一键脚本并选择保留现有配置时，也会自动为旧安装补上该限制；原 Compose 文件会先保存为带时间戳的备份，`secret` 和 `ad_tag` 不会改变。
+
 > 注意：Telemt 用户密钥的格式是 16 个随机字节编码为 32 个十六进制字符。`ad_tag` 也必须是 @MTProxybot 返回的 32 位十六进制内容。
 
 安装过程中每个用户都会出现密钥提示：直接按回车会安全地随机生成；输入已有的 32 位十六进制密钥则会原样使用。
